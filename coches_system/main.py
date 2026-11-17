@@ -18,19 +18,20 @@ class App:
     def main(self):
        self.borrarPantalla()
        Label(self.ventana,text="::: MENU PRINCIPAL :::").pack(pady=20)
-       Button(self.ventana,text="1.- Coches",command=self.menu_acciones).pack(pady=10)
-       Button(self.ventana,text="2.- Salir",command=self.ventana.quit).pack(pady=10)
+       Button(self.ventana,text="1.- Coches",command=lambda: self.menu_acciones()).pack(pady=10)
+       Button(self.ventana,text="2.- Salir",command=lambda: self.ventana.quit()).pack(pady=10)
     
     def menu_acciones(self):
         self.borrarPantalla()
         tipo="Coche"
         Label(self.ventana,text=f"...::: Menu de {tipo} :::...").pack(pady=10)
-        Button(self.ventana,text="1.- Agregar",command=self.insertar_coche_view).pack(pady=10)
-        Button(self.ventana,text="2.- Borrar",command=self.eliminar_coche_view).pack(pady=10)
-        Button(self.ventana,text="3.- Modificar",command=self.modificar_coche_view).pack(pady=10)
-        Button(self.ventana,text="4.- Mostrar",command=self.consultar_coche_view).pack(pady=10)
-        Button(self.ventana,text="5.- Regresar",command=self.main).pack(pady=10)
-        
+
+        Button(self.ventana,text="1.- Agregar",command=lambda: self.insertar_coche_view()).pack(pady=10)
+        Button(self.ventana,text="2.- Borrar",command=lambda: self.eliminar_coche_view()).pack(pady=10)
+        Button(self.ventana,text="3.- Modificar",command=lambda: self.modificar_coche_view()).pack(pady=10)
+        Button(self.ventana,text="4.- Mostrar",command=lambda: self.consultar_coche_view()).pack(pady=10)
+        Button(self.ventana,text="5.- Regresar",command=lambda: self.main()).pack(pady=10)
+       
     def insertar_coche_view(self):
         self.borrarPantalla()
         Label(self.ventana,text="...Ingresar los datos del Coche").pack(pady=10)
@@ -60,9 +61,8 @@ class App:
         self.asientos=Entry(self.ventana)
         self.asientos.pack(pady=5)
         
-        Button(self.ventana,text=":: Agregar ::",command=self.insertar_coche_controller).pack(pady=5)
-        Button(self.ventana,text=":: Regresar ::",command=self.menu_acciones).pack(pady=5)
-
+        Button(self.ventana,text=":: Agregar ::",command=lambda: self.insertar_coche_controller()).pack(pady=5)
+        Button(self.ventana,text=":: Regresar ::",command=lambda: self.menu_acciones()).pack(pady=5)
     def resetear_insertar(self):
         self.marca.delete(0, "end")
         self.color.delete(0, "end")
@@ -74,6 +74,7 @@ class App:
 
     
     
+    
     def eliminar_coche_view(self):
         self.borrarPantalla()
         Label(self.ventana,text="...Ingresar el ID del coche a eliminar").pack(pady=10)
@@ -83,13 +84,21 @@ class App:
         self.id.focus()
         self.id.pack(pady=5)
 
-        Button(self.ventana,text=":: Eliminar ::",command=self.eliminar_coche_controller).pack(pady=5)
-        Button(self.ventana,text=":: Regresar ::",command=self.menu_acciones).pack(pady=5)
+        self.btn_buscar=Button(self.ventana,text=":: Buscar ::",command=lambda: self.buscar_coche_controller())
+        self.btn_buscar.pack(pady=5)
+
+        self.btn_eliminar=Button(self.ventana,text=":: Eliminar ::",command=lambda: self.confirmar_eliminar(),state="disabled")        
+        self.btn_eliminar.pack(pady=5)
+
+        Button(self.ventana,text=":: Regresar ::",command=lambda: self.menu_acciones()).pack(pady=5)
 
 
     def resetear_eliminar(self):
         self.id.delete(0, "end")
+        self.id_buscado=None
+        self.btn_eliminar.config(state="disabled")
         self.id.focus()
+
         
     def consultar_coche_view(self):
         self.borrarPantalla()
@@ -97,7 +106,7 @@ class App:
         filas=""
         filas=self.consultar_coche_controller(filas)
         Label(self.ventana,text=f"{filas}").pack(pady=5)
-        Button(self.ventana,text=":: Regresar ::",command=self.menu_acciones).pack(pady=5)
+        Button(self.ventana,text=":: Regresar ::",command=lambda: self.menu_acciones()).pack(pady=5)    
     
     def modificar_coche_view(self):
         self.borrarPantalla()
@@ -133,10 +142,10 @@ class App:
         Label(self.ventana,text="# de Asientos: ").pack(pady=5)
         self.asientos=Entry(self.ventana)
         self.asientos.pack(pady=5)
-        
-        Button(self.ventana,text=":: Modificar ::",command=self.modificar_coche_controller).pack(pady=5)
-        Button(self.ventana,text=":: Regresar ::",command=self.menu_acciones).pack(pady=5)
 
+        Button(self.ventana,text=":: Modificar ::",command=lambda: self.modificar_coche_controller()).pack(pady=5)        
+        Button(self.ventana,text=":: Regresar ::",command=lambda: self.menu_acciones()).pack(pady=5)
+    
     def resetear_modificar(self):
         self.id.delete(0, "end")
         self.marca.delete(0, "end")
@@ -163,14 +172,51 @@ class App:
         if respuesta:
             self.resetear_insertar()
 
-        del coches1
+        del coches1  
        
+    
     def eliminar_coche_controller(self):
-        respuesta=coches.Coches.eliminar(self.id.get())
+        if self.id.get()!=self.id_buscado:
+            messagebox.showwarning("Aviso","Primero debes buscar nuevamente el ID")
+            self.btn_eliminar.config(state="disabled")
+            return
+
+        respuesta=coches.Coches.eliminar(self.id_buscado)
         self.respuesta_sql(respuesta)
 
         if respuesta:
             self.resetear_eliminar()
+
+
+    
+    def buscar_coche_controller(self):
+        id_buscado=self.id.get()
+
+        if id_buscado=="":
+            messagebox.showwarning("Aviso","Ingresa un ID")
+            return
+
+        coches_registrados=coches.Coches.consultar()
+
+        for fila in coches_registrados:
+            if str(fila[0])==id_buscado:
+                self.id_buscado=id_buscado
+                self.btn_eliminar.config(state="normal")
+                messagebox.showinfo("Buscar","Coche encontrado")
+                return
+
+        self.id_buscado=None
+        self.btn_eliminar.config(state="disabled")
+        messagebox.showerror("Error","No existe un coche con ese ID")
+
+    
+    def confirmar_eliminar(self):
+        respuesta=messagebox.askyesno("Confirmar","¿Deseas eliminar este coche?")
+
+        if respuesta:
+            self.eliminar_coche_controller()
+
+
         
     def consultar_coche_controller(self,filas):
         registros=coches.Coches.consultar()
