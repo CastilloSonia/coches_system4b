@@ -61,21 +61,35 @@ class App:
         self.asientos.pack(pady=5)
         
         Button(self.ventana,text=":: Agregar ::",command=self.insertar_coche_controller).pack(pady=5)
-        
         Button(self.ventana,text=":: Regresar ::",command=self.menu_acciones).pack(pady=5)
-       
+
+    def resetear_insertar(self):
+        self.marca.delete(0, "end")
+        self.color.delete(0, "end")
+        self.modelo.delete(0, "end")
+        self.velocidad.delete(0, "end")
+        self.potencia.delete(0, "end")
+        self.asientos.delete(0, "end")
+        self.marca.focus()
+
+    
+    
     def eliminar_coche_view(self):
         self.borrarPantalla()
-        Label(self.ventana,text="...Ingresar el ID del coche a eliminare").pack(pady=10)
-        
+        Label(self.ventana,text="...Ingresar el ID del coche a eliminar").pack(pady=10)
+
         Label(self.ventana,text="ID: ").pack(pady=5)
         self.id=Entry(self.ventana)
         self.id.focus()
         self.id.pack(pady=5)
-        
+
         Button(self.ventana,text=":: Eliminar ::",command=self.eliminar_coche_controller).pack(pady=5)
-        
         Button(self.ventana,text=":: Regresar ::",command=self.menu_acciones).pack(pady=5)
+
+
+    def resetear_eliminar(self):
+        self.id.delete(0, "end")
+        self.id.focus()
         
     def consultar_coche_view(self):
         self.borrarPantalla()
@@ -121,8 +135,17 @@ class App:
         self.asientos.pack(pady=5)
         
         Button(self.ventana,text=":: Modificar ::",command=self.modificar_coche_controller).pack(pady=5)
-        
         Button(self.ventana,text=":: Regresar ::",command=self.menu_acciones).pack(pady=5)
+
+    def resetear_modificar(self):
+        self.id.delete(0, "end")
+        self.marca.delete(0, "end")
+        self.color.delete(0, "end")
+        self.modelo.delete(0, "end")
+        self.velocidad.delete(0, "end")
+        self.potencia.delete(0, "end")
+        self.asientos.delete(0, "end")
+        self.id.focus()
         
         
     # .... Controlador o Controller del Sistema ....
@@ -133,14 +156,21 @@ class App:
                 messagebox.showerror(title=":: Verifique por favor ::",message="...¡Esta Accion no pudo realizarse en este momento!...")
     
     def insertar_coche_controller(self):
-        coches1=coches.Coches(self.marca.get(),self.color.get(),self.modelo.get(),self.velocidad.get(),self.potencia.get(),self.asientos.get())                   
+        coches1=coches.Coches(self.marca.get(),self.color.get(),self.modelo.get(),self.velocidad.get(),self.potencia.get(),self.asientos.get())
         respuesta=coches1.insertar()
         self.respuesta_sql(respuesta)
-        del coches1    
+
+        if respuesta:
+            self.resetear_insertar()
+
+        del coches1
        
     def eliminar_coche_controller(self):
         respuesta=coches.Coches.eliminar(self.id.get())
         self.respuesta_sql(respuesta)
+
+        if respuesta:
+            self.resetear_eliminar()
         
     def consultar_coche_controller(self,filas):
         registros=coches.Coches.consultar()
@@ -155,9 +185,13 @@ class App:
       
     def modificar_coche_controller(self):
         id=self.id.get()
-        coches1=coches.Coches(self.marca.get(),self.color.get(),self.modelo.get(),self.velocidad.get(),self.potencia.get(),self.asientos.get())  
+        coches1=coches.Coches(self.marca.get(),self.color.get(),self.modelo.get(),self.velocidad.get(),self.potencia.get(),self.asientos.get())
         respuesta=coches1.actualizar(id)
         self.respuesta_sql(respuesta)
+
+        if respuesta:
+            self.resetear_modificar()
+
         del coches1
           
         
